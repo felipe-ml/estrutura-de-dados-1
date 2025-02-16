@@ -2,7 +2,7 @@
   EP: Árvore Binária de Busca (BST)
   Professor Anderson Ávila - UEL
   Descrição: Completar as funções solicitadas, sem alterar suas assinaturas.
-  
+ 
   A main() contém testes que exibem resultados esperados como comentário.
   Quando as funções estiverem corretamente implementadas, esses testes
   devem produzir a saída indicada.
@@ -30,133 +30,231 @@ int kEsimoMenor(PONT raiz, int k);
 void imprimirIntervalo(PONT raiz, int min, int max);
 // (Opcional) PONT lowestCommonAncestor(PONT raiz, int val1, int val2);
 
-//------------------------------------------------------------------------------
 // 1) Inicializar
 void inicializar(PONT* raiz) {
     *raiz = NULL;
 }
+
 //------------------------------------------------------------------------------
 // 2) Criar nó
-NO* criarNo(int valor){
-    NO* novo = (NO*)malloc(sizeof(NO)); //aloca um espaço na memória 
-        if (novo){
-            novo -> chave = valor; // recebe o valor inserido 
-            novo -> contador = 1; // para garantir que não haja valores repetidos
-            novo -> dir = NULL; // atribuiu NULL para a direita
-            novo -> esq = NULL; // atribuiu NULL para a esquerda
+NO* criarNo(int valor) {
+    NO* novo = (NO*)malloc(sizeof(NO)); // Aloca um espaço na memória
+    if (novo) {
+        novo->chave = valor;    // Recebe o valor inserido
+        novo->contador = 1;
+        novo->dir = NULL;        // Atribui NULL para a direita
+        novo->esq = NULL;        // Atribui NULL para a esquerda
     }
     return novo;
-    }
+}
 
 //------------------------------------------------------------------------------
 // 3) Buscar
 NO* buscar(NO* raiz, int valor) {
     if (raiz == NULL)
         return NULL;
-    else{
-        if(raiz -> chave == valor)
+    else {
+        if (raiz->chave == valor)
             return raiz;
-        else{
-            if(valor < raiz -> chave)
-                return buscar(raiz -> esq, valor);
+        else {
+            if (valor < raiz->chave)
+                return buscar(raiz->esq, valor);
             else
-                return buscar(raiz -> dir, valor);
+                return buscar(raiz->dir, valor);
         }
     }
 }
 
 //------------------------------------------------------------------------------
 // 4) Inserir
-NO* inserir(NO *raiz, int valor){
-    if(raiz = NULL){
-        NO* novo = (NO*)malloc(sizeof(NO));
-        novo -> chave = valor;
-        novo -> esq = NULL;
-        novo -> dir = NULL;
-        return novo;
-    } else{
-        if(valor < raiz -> chave)
-            return raiz -> esq = inserir(raiz -> esq, valor);
-        if(valor > raiz -> chave)
-            return raiz -> dir = inserir(raiz -> dir, valor);
+NO* inserir(NO *raiz, int valor) {
+    if (raiz == NULL) {
+        return criarNo(valor);
+    } else {
+        if (valor < raiz->chave)
+            raiz->esq = inserir(raiz->esq, valor);
+        else if (valor > raiz->chave)
+            raiz->dir = inserir(raiz->dir, valor);
+        else {
+            raiz->contador++;
         }
     }
+    return raiz;
+}
 
 //------------------------------------------------------------------------------
 // 5) Remover UMA ocorrência
-PONT removerUmaOcorrencia(PONT raiz, int valor) {
-    // COMPLETAR
+NO* removerUmaOcorrencia(NO* raiz, int valor) {
+    if (raiz == NULL) return raiz;
+    
     // 1) Buscar nó do valor:
-    //    - se não achar, não faz nada
-    // 2) se achar e contador>1 => decrementa
-    // 3) se contador==1 => remoção clássica de BST (casos 0,1,2 filhos)
-    return raiz; // provisório
+    if (raiz->chave == valor) {
+        if (raiz->contador > 1) {
+            raiz->contador--;
+            return raiz;
+        }
+        // 2) Remoção do nó
+        // Nó sem filhos
+        if (raiz->esq == NULL && raiz->dir == NULL) {
+            free(raiz);
+            return NULL;
+        }
+        // Nó com dois filhos
+        else if (raiz->esq != NULL && raiz->dir != NULL) {
+            NO* aux = raiz->esq;
+            while (aux->dir != NULL) {
+                aux = aux->dir;
+            }
+            raiz->chave = aux->chave;
+            raiz->contador = aux->contador;
+            raiz->esq = removerUmaOcorrencia(raiz->esq, aux->chave);
+        }
+        // Nó com um filho
+        else {
+            NO* aux = (raiz->esq != NULL) ? raiz->esq : raiz->dir;
+            free(raiz);
+            return aux;
+        }
+    } else {
+        if (valor < raiz->chave)
+            raiz->esq = removerUmaOcorrencia(raiz->esq, valor);
+        else
+            raiz->dir = removerUmaOcorrencia(raiz->dir, valor);
+    }
+    return raiz;
 }
 
 //------------------------------------------------------------------------------
 // 6) Remover TODAS ocorrências
 PONT removerTodasOcorrencias(PONT raiz, int valor) {
-    // COMPLETAR
-    // 1) Buscar nó do valor
-    //    - se não achar, não faz nada
-    // 2) se achar => remove nó da BST (casos 0,1,2 filhos)
-    return raiz; // provisório
+    if (raiz == NULL) return raiz;
+    
+    // Buscar nó do valor
+    if (valor < raiz->chave) {
+        raiz->esq = removerTodasOcorrencias(raiz->esq, valor);
+    } else if (valor > raiz->chave) {
+        raiz->dir = removerTodasOcorrencias(raiz->dir, valor);
+    } else {
+        // Caso 0 filhos
+        if (raiz->esq == NULL && raiz->dir == NULL) {
+            free(raiz);
+            return NULL;
+        }
+        // Caso 1 filho
+        else if (raiz->esq == NULL || raiz->dir == NULL) {
+            PONT aux = (raiz->esq != NULL) ? raiz->esq : raiz->dir;
+            free(raiz);
+            return aux;
+        }
+        // Caso 2 filhos
+        else {
+            PONT aux = raiz->esq;
+            while (aux->dir != NULL) {
+                aux = aux->dir;
+            }
+            raiz->chave = aux->chave;
+            raiz->contador = aux->contador;
+            raiz->esq = removerTodasOcorrencias(raiz->esq, aux->chave);
+        }
+    }
+    return raiz;
 }
 
 //------------------------------------------------------------------------------
 // 7) Exibir InOrder
 void exibirInOrder(PONT raiz) {
-    // COMPLETAR
-    // Percurso InOrder: esq -> (raiz->chave impresso contador vezes) -> dir
+    if (raiz == NULL) return;
+    
+    // Percorre a subárvore esquerda
+    exibirInOrder(raiz->esq);
+    
+    // Imprime a chave o número de vezes correspondente ao contador
+    for (int i = 0; i < raiz->contador; i++) {
+        printf("%d ", raiz->chave);
+    }
+    
+    // Percorre a subárvore direita
+    exibirInOrder(raiz->dir);
 }
 
 //------------------------------------------------------------------------------
 // 8) Contar nós distintos
 int contarNos(PONT raiz) {
-    // COMPLETAR
-    // Se raiz==NULL => 0
-    // Senao => 1 + contarNos(esq) + contarNos(dir)
-    return 0; // provisório
+    if (raiz == NULL) return 0;
+    return 1 + contarNos(raiz->esq) + contarNos(raiz->dir);
 }
 
 //------------------------------------------------------------------------------
 // 9) Contar total de elementos (somando contadores)
 int contarTotalElementos(PONT raiz) {
-    // COMPLETAR
-    // soma = raiz->contador + subárvores
-    return 0; // provisório
+    if (raiz == NULL) return 0;
+    return raiz->contador + contarTotalElementos(raiz->esq) + contarTotalElementos(raiz->dir);
 }
 
 //------------------------------------------------------------------------------
 // 10) k-ésimo menor
 int kEsimoMenor(PONT raiz, int k) {
-    // COMPLETAR
-    // Deve considerar o contador de cada nó
-    // Retorne -1 se não existir
-    return -1; // provisório
+    if (raiz == NULL) return -1;
+    
+    int elementosEsq = contarTotalElementos(raiz->esq);
+    
+    if (k <= elementosEsq) {
+        return kEsimoMenor(raiz->esq, k);
+    } else if (k > elementosEsq + raiz->contador) {
+        return kEsimoMenor(raiz->dir, k - elementosEsq - raiz->contador);
+    }
+    
+    return raiz->chave;
 }
 
 //------------------------------------------------------------------------------
 // 11) Imprimir Intervalo [min, max]
 void imprimirIntervalo(PONT raiz, int min, int max) {
-    // COMPLETAR
-    // Imprimir todos (com contadores) que estejam no intervalo [min, max]
+    if (raiz == NULL) return;
+    
+    if (raiz->chave > min) {
+        imprimirIntervalo(raiz->esq, min, max);
+    }
+    
+    if (raiz->chave >= min && raiz->chave <= max) {
+        for (int i = 0; i < raiz->contador; i++) {
+            printf("%d ", raiz->chave);
+        }
+    }
+    
+    if (raiz->chave < max) {
+        imprimirIntervalo(raiz->dir, min, max);
+    }
 }
 
 //------------------------------------------------------------------------------
-
+// 12) Ancestral Comum Mais Baixo
 PONT lowestCommonAncestor(PONT raiz, int val1, int val2) {
-    // COMPLETAR
-    return NULL;
-}
+    // Caso base: se a raiz for NULL, não há ancestral
+    if (raiz == NULL) {
+        return NULL;
+    }
 
+    // Se ambos os valores são menores que a chave da raiz, o LCA está na subárvore esquerda
+    if (val1 < raiz->chave && val2 < raiz->chave) {
+        return lowestCommonAncestor(raiz->esq, val1, val2);
+    }
+    
+    // Se ambos os valores são maiores que a chave da raiz, o LCA está na subárvore direita
+    if (val1 > raiz->chave && val2 > raiz->chave) {
+        return lowestCommonAncestor(raiz->dir, val1, val2);
+    }
+
+    // Caso contrário, a raiz é o LCA
+    return raiz;
+}
 
 //------------------------------------------------------------------------------
 // main() para testes com expectativas de resultado
 int main() {
     // PONT raiz;                    // ponteiro para a raiz da BST
     // inicializar(&raiz);           // deixa a árvore vazia
-    // 
+    //
     // As funções a serem implementadas:
     //   - criarNo
     //   - inserir
@@ -184,7 +282,7 @@ int main() {
     // InOrder final esperado (antes de quaisquer remoções):
     //     "5 5 5 10 10 15 18"
     //
-    inserir(raiz, 10); 
+    inserir(raiz, 10);
     inserir(raiz, 5);
     inserir(raiz, 15);
     inserir(raiz, 10); // repetido => contador(10)++
@@ -195,7 +293,7 @@ int main() {
     printf("\n--- APÓS INSERIR (10,5,15,10,5,5,18) ---\n");
     printf("InOrder esperado: 5 5 5 10 10 15 18\n");
     printf("InOrder obtido:   ");
-    exibirInOrder(raiz); 
+    exibirInOrder(raiz);
     printf("\n");
 
     // -------------------------------------------------------
@@ -215,7 +313,7 @@ int main() {
     }
 
     // -------------------------------------------------------
-    // 3) Remover UMA ocorrência 
+    // 3) Remover UMA ocorrência
     //    removerUmaOcorrencia(5) => contador(5) deve passar de 3 para 2
     removerUmaOcorrencia(raiz, 5);
 
@@ -299,12 +397,12 @@ int main() {
     printf("\n");
 
     // LCA tests:
-    //  LCA(3,5) -> 5 ou 3? 
-    //     - 3 e 5 estão ambos na subárvore da raiz=5? 
-    //     - Se a raiz é 5, e 3<5 => esq 
+    //  LCA(3,5) -> 5 ou 3?
+    //     - 3 e 5 estão ambos na subárvore da raiz=5?
+    //     - Se a raiz é 5, e 3<5 => esq
     //       => LCA(3,5) deve ser 5, mas depende da estrutura exata
     //  LCA(3,12) -> 5
-    //  LCA(16,18) -> 16 ou 15? 
+    //  LCA(16,18) -> 16 ou 15?
     //     => Analisando: 16 < 18 => 16 deve estar na subárvore direita(15)
     //        -> 15 < 16 => goes right => 18
     //        => 16 < 18 => subárvore esquerda de 18
